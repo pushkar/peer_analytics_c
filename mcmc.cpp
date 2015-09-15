@@ -1,77 +1,74 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
-#include <map>
-#include <random>
-#include <array>
 #include <algorithm>
 
-#include "variables.h"
+#include "data.h"
 #include "matplotlibcpp.h"
 
 namespace plt = matplotlibcpp;
 
-int main()
-{
 
-    // Variables
-    const int n_steps = 20000;
-    const int n_students = 10;
-    const int n_questions = 100;
-    const int n_answered_questions = 20;
+class MH {
+public:
+    MH() {
 
-    std::array<Student, n_students> s;
-    std::array<Question, n_questions> q;
-    std::array<Observation, n_students*n_questions> o;
-
-    // Initialization
-    for (int i = 0; i < n_students; i++) {
-        s[i].set_normal_distribution(0.5, 0.1);
     }
-    for (int i = 0; i < n_questions; i++) {
-        q[i].set_normal_distribution(0.5, 0.1);
-    }
-    for (int i = 0; i < n_students; i++) {
-        for (int j = 0; j < n_answered_questions; j++) {
-            int k = std::round(random_(0, n_questions));
-            o[i*n_questions+k].set(1);
+
+    void run(const int n) {
+        for (int i=0; i<s.size(); i++) {
+            s[i].initialize();
         }
-    }
 
-    // MCMC
-    float diff = 0, old_diff = 10000;
+        for (int i=1; i<n_steps; ++i) {
+            for (int s_i=0; s_i<s.size(); s_i++) {
+                double y = s[s_i].sample();
 
-    for (int n = 0; n < n_steps; n++) {
-        diff = 0;
-        for (int i = 0; i < n_students; i++) {
-            for (int j = 0; j < n_questions; j++) {
-                // For every student and question
-                // find a new value
-                s[i].step();
-                q[j].step();
-                // Calculate the observation for each
-                int k = i*n_questions+j;
-                o[k].set(s[i].get_proficiency(), q[j].get_hardness());
-                diff += o[k].diff();
+                double old = s[s_i].last();
+                double r = std::min(normal_custom(y)/normal_custom(old), 1.0);
+                if (random_(0, 1) < r)
+                    s[s_i].insert(y);
+                else
+                    s[s_i].insert(old);
+
             }
         }
 
-        if (diff > old_diff) { // reject new valuess
-            for (int i = 0; i < n_students; i++) s[i].reject();
-            for (int j = 0; j < n_questions; j++) q[j].reject();
-            diff = old_diff;
+        for (int i=0; i<s.size(); i++) {
+            s[i].stats();
         }
-        else
-            old_diff = diff;
+    }
+};
 
+
+int main()
+{
+
+    for (int i=0; i<n_students; i++) {
+        s[i].set_params(0.1*i, 0.1);
+    }
+
+    MH h;
+    h.run(n_steps);
+
+    std::cout << s[0].mean() << std::endl;
+    std::cout << s[0].stdev() << std::endl;
+    plt::hist(s[0].chain(), 50);
+    plt::hist(s[2].chain(), 50);
+    plt::hist(s[3].chain(), 50);
+    plt::show();
+
+
+        /*
         // show the step_n :: difference
         std::cout << std::right;
         if (n % (n_steps/200) == 0) {
             int done = (n*100.0/n_steps);
             std::cout << "[" << std::setw(3) << done << "%]: " << diff << "\r" << std::flush;
         }
-    }
+
 
     std::cout << std::flush << std::endl;
     std::cout << "Done." << std::endl;
+    */
 }

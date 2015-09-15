@@ -10,8 +10,8 @@ file (GLOB srcs "*.cpp")
 file (GLOB hdrs "*.h")
 
 set (CMAKE_CXX_FLAGS "-std=c++11 -o3")
-#add_executable (mcmc mcmc ${hdrs})
-#target_link_libraries(mcmc python2.7)
+add_executable (mcmc mcmc)
+target_link_libraries(mcmc python2.7)
 
 set (CMAKE_CXX_FLAGS "-std=c++11 -o3")
 add_executable (simple simplemcmc)

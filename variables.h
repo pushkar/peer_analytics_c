@@ -1,3 +1,8 @@
+#ifndef _VARIABLES_H_
+#define _VARIABLES_H_
+
+#include <iostream>
+#include <cstdarg>
 #include <random>
 #include <string>
 
@@ -9,86 +14,86 @@ float random_(int min, int max) {
     return d(gen);
 }
 
+double normal_custom(double x) {
+    double mean = 0.4;
+    double sigma = 0.1;
+    return exp(-(x-mean)*(x-mean)/(2*sigma*sigma))/(sigma*sqrt(2*M_PI));
+}
 
-class Student {
-    float old_proficiency;
-    float proficiency;
-    int proficiency_observed;
+class Chain {
+protected:
+    std::vector<double> x;
+    double mu;
+    double std;
+
+public:
+    Chain() {
+
+    }
+
+    void stats() {
+        double sum = std::accumulate(x.begin(), x.end(), 0.0);
+        mu = sum / x.size();
+
+        double sq_sum = std::inner_product(x.begin(), x.end(), x.begin(), 0.0);
+        std = std::sqrt(sq_sum / x.size() - mu*mu);
+    }
+
+    double mean() {
+        return mu;
+    }
+
+    double stdev() {
+        return std;
+    }
+
+    void insert(double n) {
+        x.push_back(n);
+    }
+
+    void initialize(double value) {
+        x.clear();
+        insert(value);
+    }
+
+    double last() {
+        return x.back();
+    }
+
+    int size() {
+        return x.size();
+    }
+
+    std::vector<double> chain() {
+        return x;
+    }
+
+
+};
+
+class Normal : public Chain {
+    int observed;
     std::normal_distribution<> dist;
 
 public:
-    Student() {
-        proficiency_observed = 0;
+    Normal() {
+        observed = 0;
     }
 
-    void set_normal_distribution(float mu, float sigma) {
-        std::normal_distribution<> dist(mu, sigma);
-        proficiency = dist(gen);
+    void set_params(double mean, double sigma) {
+        std::normal_distribution<> dist(mean, sigma);
     }
 
-    float get_proficiency() {
-        return proficiency;
+    void initialize() {
+        x.clear();
+        insert(dist.mean());
     }
 
-    void set_proficiency(float h) {
-        proficiency = h;
-        proficiency_observed = 1;
-    }
-
-    void step() {
-        old_proficiency = proficiency;
-        if(proficiency_observed == 0)
-            proficiency = dist(gen);
-    }
-
-    void accept() {
-
-    }
-
-    void reject() {
-        proficiency = old_proficiency;
+    double sample() {
+        return dist(gen);
     }
 };
 
-class Question {
-    float old_hardness;
-    float hardness;
-    int hardness_observed;
-    std::normal_distribution<> dist;
-
-public:
-    Question() {
-        hardness_observed = 0;
-    }
-
-    void set_normal_distribution(float mu, float sigma) {
-        std::normal_distribution<> dist(mu, sigma);
-        hardness = dist(gen);
-    }
-
-    float get_hardness() {
-        return hardness;
-    }
-
-    void set_hardness(float h) {
-        hardness = h;
-        hardness_observed = 1;
-    }
-
-    void step() {
-        old_hardness = hardness;
-        if(hardness_observed == 0)
-            hardness = dist(gen);
-    }
-
-    void accept() {
-
-    }
-
-    void reject() {
-        hardness = old_hardness;
-    }
-};
 
 // -1 = Not Assigned
 class Observation {
@@ -123,3 +128,5 @@ public:
     }
 
 };
+
+#endif
