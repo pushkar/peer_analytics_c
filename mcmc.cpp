@@ -8,7 +8,7 @@
 
 namespace plt = matplotlibcpp;
 
-double true_mean = 0.35;
+double true_mean = 0.5;
 double true_sigma = 0.1;
 
 std::vector<double> data_x;
@@ -36,6 +36,62 @@ double likelihood(double mean) {
     return sum;
 }
 
+double likelihood_z(int s_id, int q_id) {
+    double s_id_sample = 0;
+    double q_id_sample = 0;
+
+    double sum_new = 0;
+    for (int i=0; i<o.size(); i++) {
+        double s_ = s[o[i].get_sid()].last();
+        double q_ = q[o[i].get_qid()].last();
+        if (o[i].get_sid() == s_id) {
+            s_ = s[s_id].sample();
+            s_id_sample = s_;
+        }
+        if (o[i].get_qid() == q_id) {
+            q_ = q[q_id].sample();
+            q_id_sample = q_;
+        }
+        sum_new -= (log(1 + exp(-(s_-q_))) + (1-o[i].get_response())*(s_-q_));
+        sum_new -= 0.5*s_*s_;
+        sum_new -= 0.5*q_*q_;
+    }
+
+    double sum_old = 0;
+    for (int i=0; i<o.size(); i++) {
+        double s_ = s[o[i].get_sid()].last();
+        double q_ = q[o[i].get_qid()].last();
+        sum_old -= (log(1 + exp(-(s_-q_))) + (1-o[i].get_response())*(s_-q_));
+        sum_old -= 0.5*s_*s_;
+        sum_old -= 0.5*q_*q_;
+    }
+
+    double r = exp(sum_new - sum_old);
+    if (random_(0, 1) < r) {
+        for (int i=0; i<s.size(); i++) {
+            if (i==s_id)
+                s[i].insert(s_id_sample);
+            else
+                s[i].insert(s[i].last());
+        }
+        for (int i=0; i<q.size(); i++) {
+            if (i==q_id)
+                q[i].insert(q_id_sample);
+            else
+                q[i].insert(q[i].last());
+        }
+    }
+    else {
+        for (int i=0; i<s.size(); i++) {
+            s[i].insert(s[i].last());
+        }
+        for (int i=0; i<q.size(); i++) {
+            q[i].insert(q[i].last());
+        }
+
+    }
+}
+
 class MH {
 public:
     MH() {
@@ -46,23 +102,21 @@ public:
         for (int i=0; i<s.size(); i++) {
             s[i].initialize();
         }
+        for (int i=0; i<q.size(); i++) {
+            q[i].initialize();
+        }
 
-        for (int i=1; i<n_steps; ++i) {
-            for (int s_i=0; s_i<s.size(); s_i++) {
-                double y = s[s_i].sample();
-                double old = s[s_i].last();
-                double r = exp(likelihood(y) - likelihood(old));
-                if (random_(0, 1) < r)
-                    s[s_i].insert(y);
-                else
-                    s[s_i].insert(old);
+        for (int n=1; n<n_steps; ++n) {
+            for (int _i=0; _i<s.size(); _i++) {
+                likelihood_z(_i, -1);
+                for (int _j=0; _j<q.size(); _j++) {
+                    likelihood_z(-1, _j);
+                    }
                 }
-
-
             // show the step_n :: difference
             std::cout << std::right;
-            if (i % (n_steps/200) == 0) {
-                int done = (i*100.0/n_steps);
+            if (n % (n_steps/200) == 0) {
+                int done = (n*100.0/n_steps);
                 std::cout << "[" << std::setw(3) << done << "%]: " << "\r" << std::flush;
             }
 
@@ -71,6 +125,10 @@ public:
         for (int i=0; i<s.size(); i++) {
             s[i].burn(burn_n);
             s[i].stats();
+        }
+        for (int i=0; i<q.size(); i++) {
+            q[i].burn(burn_n);
+            q[i].stats();
         }
         std::cout << std::flush << std::endl;
         std::cout << "Done." << std::endl;
@@ -88,12 +146,29 @@ int main()
     for (int i=0; i<n_students; i++) {
         s[i].set_params(0.1*i, 0.1);
     }
+    for (int i=0; i<n_questions; i++) {
+        q[i].set_params(0.1*i, 0.1);
+    }
+
+    for (int i=0; i<n_students; i++) {
+        for (int j=0; j<n_questions; j++) {
+            if (s[i].last() < q[j].last())
+                o[i*n_students+j].set(i, j, 1);
+            else
+                o[i*n_students+j].set(i, j, 0);
+        }
+    }
+
 
     MH h;
     h.run(n_steps, n_burn);
 
-    std::cout << s[0].mean() << std::endl;
-    std::cout << s[0].stdev() << std::endl;
-    plt::hist(s[0].chain(), 50);
+    for (int i=0; i<n_students; i++) {
+        std::cout << s[i].mean() << std::endl;
+        std::cout << s[i].stdev() << std::endl;
+        std::cout << std::endl;
+        plt::hist(s[i].chain(), 50);
+
+    }
     plt::show();
 }

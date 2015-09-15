@@ -78,13 +78,14 @@ public:
         observed = 0;
     }
 
-    void set_params(double mean, double sigma) {
-        std::normal_distribution<> dist(mean, sigma);
-    }
-
     void initialize() {
         x.clear();
         insert(dist.mean());
+    }
+
+    void set_params(double mean, double sigma) {
+        std::normal_distribution<> dist(mean, sigma);
+        initialize();
     }
 
     double sample() {
@@ -95,34 +96,27 @@ public:
 
 // -1 = Not Assigned
 class Observation {
-    int value;
-    int value_given;
-    float proficiency, hardness;
+    int s_id, q_id, correct;
 public:
+    void set(int _s_id, int _q_id, int _correct) {
+        s_id = _s_id;
+        q_id = _q_id;
+        correct = _correct;
+    }
+
     Observation() {
-        value = -1;
-        value_given = -1;
     }
 
-    void set(float _proficiency, float _hardness) {
-        proficiency = _proficiency;
-        hardness = _hardness;
-        //if ((1.0 / (1 + exp(-proficiency-hardness) )) > 0)
-        if (_proficiency > _hardness)
-            value = 1;
-        else
-            value = 0;
+    int get_sid() {
+        return s_id;
     }
 
-    void set(int _value) {
-        value_given = _value;
+    int get_qid() {
+        return q_id;
     }
 
-    float diff() {
-        if (value_given != -1) {
-            return pow(value-value_given, 2);
-        }
-        return 0;
+    int get_response() {
+        return correct;
     }
 
 };
