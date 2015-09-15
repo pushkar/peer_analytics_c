@@ -8,7 +8,7 @@
 
 // Variables
 const int n_steps = 20000;
-const int n_burn = 1000;
+const int n_burn = 1;
 const int n_students = 10;
 const int n_questions = 100;
 const int n_answered_questions = 20;

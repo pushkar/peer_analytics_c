@@ -57,19 +57,29 @@ public:
                 else
                     s[s_i].insert(old);
                 }
+
+
+            // show the step_n :: difference
+            std::cout << std::right;
+            if (i % (n_steps/200) == 0) {
+                int done = (i*100.0/n_steps);
+                std::cout << "[" << std::setw(3) << done << "%]: " << "\r" << std::flush;
+            }
+
         }
 
         for (int i=0; i<s.size(); i++) {
             s[i].burn(burn_n);
             s[i].stats();
         }
+        std::cout << std::flush << std::endl;
+        std::cout << "Done." << std::endl;
     }
 };
 
 
 int main()
 {
-
     for (int i = 0; i < data_size; i++) {
         data_x.push_back(random_(0, 1));
         data_y.push_back(normal_custom(data_x.at(i), true_mean, true_sigma));
@@ -84,26 +94,6 @@ int main()
 
     std::cout << s[0].mean() << std::endl;
     std::cout << s[0].stdev() << std::endl;
-    std::cout << s[2].mean() << std::endl;
-    std::cout << s[2].stdev() << std::endl;
-    std::cout << s[3].mean() << std::endl;
-    std::cout << s[3].stdev() << std::endl;
     plt::hist(s[0].chain(), 50);
-    plt::hist(s[2].chain(), 50);
-    plt::hist(s[3].chain(), 50);
     plt::show();
-
-
-        /*
-        // show the step_n :: difference
-        std::cout << std::right;
-        if (n % (n_steps/200) == 0) {
-            int done = (n*100.0/n_steps);
-            std::cout << "[" << std::setw(3) << done << "%]: " << diff << "\r" << std::flush;
-        }
-
-
-    std::cout << std::flush << std::endl;
-    std::cout << "Done." << std::endl;
-    */
 }
