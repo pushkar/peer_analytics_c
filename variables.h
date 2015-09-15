@@ -14,11 +14,6 @@ float random_(int min, int max) {
     return d(gen);
 }
 
-double normal_custom(double x) {
-    double mean = 0.4;
-    double sigma = 0.1;
-    return exp(-(x-mean)*(x-mean)/(2*sigma*sigma))/(sigma*sqrt(2*M_PI));
-}
 
 class Chain {
 protected:
@@ -68,6 +63,9 @@ public:
         return x;
     }
 
+    void burn(int n) {
+        x.erase(x.begin(), x.begin()+n);
+    }
 
 };
 
