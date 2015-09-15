@@ -14,5 +14,5 @@ set (CMAKE_CXX_FLAGS "-std=c++11 -o3")
 #target_link_libraries(mcmc python2.7)
 
 set (CMAKE_CXX_FLAGS "-std=c++11 -o3")
-add_executable (simplemcmc simplemcmc)
-target_link_libraries(simplemcmc python2.7)
+add_executable (simple simplemcmc)
+target_link_libraries(simple python2.7)
