@@ -7,9 +7,9 @@
 #include "variables.h"
 
 // Variables
-const int n_steps = 20000;
-const int n_burn = 1;
-const int n_students = 5;
+const int n_steps = 40000;
+const int n_burn = 18000;
+const int n_students = 10;
 const int n_questions = 10;
 const int n_answered_questions = 3;
 

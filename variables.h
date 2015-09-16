@@ -79,13 +79,13 @@ public:
     }
 
     void initialize() {
-        x.clear();
-        insert(dist.mean());
+        //x.clear();
+        //insert(dist.mean());
     }
 
     void set_params(double mean, double sigma) {
         std::normal_distribution<> dist(mean, sigma);
-        initialize();
+        x.push_back(mean);
     }
 
     double sample() {

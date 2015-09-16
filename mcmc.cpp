@@ -145,30 +145,60 @@ int main()
 
     for (int i=0; i<n_students; i++) {
         s[i].set_params(0.1*i, 0.1);
+        std::cout << "Proficiency of Student " << i << ": " << s[i].last() << std::endl;
     }
     for (int i=0; i<n_questions; i++) {
         q[i].set_params(0.1*i, 0.1);
+        std::cout << "Hardness of Question " << i << ": " << q[i].last() << std::endl;
     }
+
+    std::cout << std::endl;
+    std::cout << "Data" << std::endl;
 
     for (int i=0; i<n_students; i++) {
         for (int j=0; j<n_questions; j++) {
-            if (s[i].last() < q[j].last())
+            if (s[i].last() > q[j].last())
                 o[i*n_students+j].set(i, j, 1);
             else
                 o[i*n_students+j].set(i, j, 0);
+            std::cout << o[i*n_students+j].get_response() << " ";
         }
+        std::cout << std::endl;
     }
 
+    std::cout << std::endl;
 
     MH h;
     h.run(n_steps, n_burn);
 
     for (int i=0; i<n_students; i++) {
-        std::cout << s[i].mean() << std::endl;
-        std::cout << s[i].stdev() << std::endl;
-        std::cout << std::endl;
-        plt::hist(s[i].chain(), 50);
+        std::cout << "Student " << i << ": "<< s[i].mean() << std::endl;
+        //plt::hist(s[i].chain(), 50);
+    }
+
+    for (int i=0; i<n_questions; i++) {
+        std::cout << "Question " << i << ": "<< q[i].mean() << std::endl;
+        //plt::hist(q[i].chain(), 50);
 
     }
+
+    std::cout << std::endl;
+    std::cout << "Posterior Data" << std::endl;
+
+    for (int i=0; i<n_students; i++) {
+        for (int j=0; j<n_questions; j++) {
+            if (s[i].mean() > q[j].mean()) {
+                if (o[i*n_students+j].get_response() != 1)
+                    std::cout << "1 ";
+            }
+            else {
+                if (o[i*n_students+j].get_response() != 0)
+                    std::cout << "1 ";
+            }
+        }
+        std::cout << "Mispredictions are denoted by 1." << std::endl;
+    }
+
+    std::cout << std::endl;
     plt::show();
 }
