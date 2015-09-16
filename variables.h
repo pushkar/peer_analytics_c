@@ -20,6 +20,7 @@ protected:
     std::vector<double> x;
     double mu;
     double std;
+    double mu_var;
 
 public:
     Chain() {
@@ -32,6 +33,21 @@ public:
 
         double sq_sum = std::inner_product(x.begin(), x.end(), x.begin(), 0.0);
         std = std::sqrt(sq_sum / x.size() - mu*mu);
+
+        sum = 0;
+        std::vector<double> mu_s;
+        int b = x.size()*0.75;
+        for (int i = 0; i < 10; i++) {
+            sum = std::accumulate(x.begin(), x.begin()+b, 0.0);
+            mu_s.push_back(sum / b);
+        }
+
+        sum = 0;
+        for (int i = 0; i < mu_s.size(); i++) {
+            sum += ((mu_s[i]-mu)*(mu_s[i]-mu));
+        }
+        mu_var = sum/mu_s.size();
+
     }
 
     double mean() {
@@ -40,6 +56,10 @@ public:
 
     double stdev() {
         return std;
+    }
+
+    double mean_variance() {
+        return mu_var;
     }
 
     void insert(double n) {
@@ -91,6 +111,30 @@ public:
     double sample() {
         return dist(gen);
     }
+};
+
+class Bernoulli : public Chain {
+    int observed;
+    std::bernoulli_distribution dist;
+
+public:
+    Bernoulli() {
+        observed = 0;
+    }
+
+    void initialize() {
+
+    }
+
+    void set_params(double mean) {
+        std::bernoulli_distribution dist(mean);
+        x.push_back(mean);
+    }
+
+    double sample() {
+        return dist(gen);
+    }
+
 };
 
 

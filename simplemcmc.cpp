@@ -6,6 +6,11 @@
 using namespace std;
 namespace plt = matplotlibcpp;
 
+double true_mean = 0.5;
+double true_sigma = 0.1;
+std::vector<double> data_x;
+std::vector<double> data_y;
+int data_size = 150;
 
 void find_mean_stdev(vector<double>* c) {
     double sum = std::accumulate(c->begin(), c->end(), 0.0);
@@ -24,11 +29,22 @@ double normal_custom(double x) {
     return exp(-(x-mean)*(x-mean)/(2*sigma*sigma))/(sigma*sqrt(2*M_PI));
 }
 
+double log_normal_custom(double x, double mean, double sigma) {
+    //return log(1/(2*sigma*sigma)) + (-(x-mean)*(x-mean));
+    return log(normal_custom(x, mean, sigma));
+}
+
 int main()
 {
     int n = 5000; // number of data points
     std::random_device rd;
     std::mt19937 gen(rd());
+
+    //Data
+    for (int i = 0; i < data_size; i++) {
+        data_x.push_back(random_(0, 1));
+        data_y.push_back(normal_custom(data_x.at(i), true_mean, true_sigma));
+    }
 
     // Monte Carlo
     std::normal_distribution<> norm(5.0, 0.1);
